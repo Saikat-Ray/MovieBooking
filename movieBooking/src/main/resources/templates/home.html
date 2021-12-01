@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Booking Page</title>
+</head>
+<body onload="setUser()">
+<h1>Book Movie Seats</h1>
+<form action="#" th:action="@{/bookShow}" th:object="${booking}" method="post" id="bookShowForm">
+    <div>
+        <text id="userId" name="userId" value="Hello"/>
+    </div>
+
+    <div class="col-lg-3" th:object="${city}">
+    <label>Select City</label>
+    <select class="form-control" id="cityName" name="cityName" >
+        <option value="">Select City</option>
+        <option th:each="city : ${cityList}"
+                th:value="${city.cityId}"
+                th:text="${city.name}"></option>
+    </select>
+</div>
+<div class="col-lg-3" th:object="${movie}">
+    <label>Select movie</label>
+    <select class="form-control" id="movieName" name="movieName" >
+        <option value="">Select Movie</option>
+        <option th:each="movie : ${movieList}"
+                th:value="${movie.movieId}"
+                th:text="${movie.title}"></option>
+    </select>
+</div>
+<div>
+    <label>Select Cinema</label>
+    <select id="cinemaName" name="cinemaName">
+    </select>
+</div>
+<div>
+    <label>Select Show Type</label>
+    <select id="cinemaHall" name="cinemaHall">
+    </select>
+</div>
+<div>
+    <label>Select Show Date</label>
+    <select id="showDate" name="showDate">
+    </select>
+</div>
+<div>
+    <label>Total no. of Seats</label>
+    <text id="noOfTotalSeats"></text>
+</div>
+<div>
+    <label>Available seats</label>
+    <select multiple class="chooses-select" id="bookSeatsIdSelect" name="bookSeatsIdSelect">
+        <option>Select Seats</option>
+    </select>
+</div>
+</div>
+    <label>Your selected seats are: </label>
+    <input id="bookSeatsId" name="bookSeatsId"/>
+<div>
+    <input id="submitButton" type="submit" value="Submit" />
+</div>
+</form>
+
+<div id="msg"></div>
+<form action="#" th:action="@{/makePayment}" th:object="${payment}" method="post" id="paymentForm">
+
+<h1>Payment Section</h1>
+<div>
+    <label>Your booking reference number is </label>
+    <input id = "bookingId" name="bookingId" readonly/>
+</div>
+<div>
+    <input id="bookingDate" name="bookingDate" hidden/>
+</div>
+<div>
+    <label>Total Amount</label>
+    <input id="totalAmount" name="totalAmount" readonly/>
+</div>
+<div>
+    <label>Enter Card number</label>
+    <input type="text" id="cardNumber" name="cardNumber"/>
+</div>
+<div>
+    <input id="submitPayment" type="submit" value="Submit"/>
+</div>
+</form>
+<form action="#" th:object="${resetForm}" method="post" id="resetForm">
+    <input id="resetFormButton" type="reset" value="Reset"/>
+</form>
+<div>
+    <label>Your booking id is:</label>
+    <input id="confirmMsg" readonly/>
+</div>
+<script src="http://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script>
+        function setUser(){
+            var user_Id="100";
+        }
+        $(document).ready(function() {
+            $("#cityName").change(function() {
+                $("#cinemaName").empty();
+                $("#cinemaName").append("<option value = 0>Select Cinema</option>");
+
+                $("#cinemaHall").empty();
+                $("#cinemaHall").append("<option value = 0>Select Show type</option>");
+
+                $("#showDate").empty();
+                $("#showDate").append("<option value = 0>Select Show Date</option>");
+
+                setCinemas();
+            });
+            $("#cinemaName").change(function() {
+                setCinemaHall();
+            });
+            $("#cinemaHall").change(function() {
+                setShowDate();
+            });
+            $("#showDate").change(function() {
+                setNoOfTotalSeats();
+                availableSeats();
+            });
+            $("#bookSeatsIdSelect").change(function() {
+                var seats = $("#bookSeatsIdSelect").val();
+                $("#bookSeatsId").val(seats);
+            });
+            $('#bookShowForm').on('load', function(e){
+                alert("Calling onload");
+            });
+            $('#bookShowForm').on('submit', function(e){
+                e.preventDefault();
+                var inputs = $("#bookShowForm :input").serializeArray();
+                console.log(inputs);
+                var input = JSON.stringify(inputs);
+                var postURL="/home/bookShow";
+                if ($("#bookSeatsId").val() == ""){
+                    alert("Please make a seat selection");
+                }
+                else {
+                    var seats = $("#bookSeatsIdSelect").val();
+                    var seatStr = "";
+                    for (var i=0; i<seats.length; i++){
+                        if (i != 0){
+                            seatStr = seatStr + ",";
+                        }
+                        seatStr = seatStr + seats[i];
+                    }
+                    $("#bookSeatsId").text(seatStr);
+                    $.ajax({
+                        type: "POST",
+                        url: postURL,
+                        data: inputs,
+                        beforeSend: function() {
+                            alert("Reserving seats...Please complete payment in 2 minutes.");
+                            disableBookingForm();
+                        },
+                        success: function(msg){
+                            $('#msg').show();
+                            $('#msg').html("Please make payment in 2 minutes. Seats will be released after 2 minutes.");
+                            var result = JSON.parse(msg);
+                            $("#bookingId").val(result[0]);
+                            $("#totalAmount").val(result[1]);
+                            $("#submitButton").prop("disabled",true);
+                            $("#bookingDate").val(result[2]);
+                            var currTime = Date.now();
+                            console.log(currTime);
+                            console.log(result[2]);
+                        }
+                    });
+                }
+            });
+            $('#paymentForm').on('submit', function(e){
+                createPayment(e);
+            });
+            $('#resetForm').on('reset', function(e){
+                resetBookingForm();
+                enableBookingForm();
+                resetPaymentForm()
+                enablePaymentForm();
+                $("#confirmMsg").val("");
+            });
+        });
+        function setCinemas() {
+            var city = $("#cityName").val();
+            $.get( "/home/cinema?cValue=" + city, function( data ) {
+                var result = JSON.parse(data);
+                for (var i=0; i< result.length; i++){
+                    var option = "<option value = " + result[i].cinemaId + ">" + result[i].name +  "</option>";
+                    $("#cinemaName").append(option);
+                }
+            });
+        };
+        function setCinemaHall(){
+            var cinema = $("#cinemaName").val();
+            $.get("/home/hall?cinValue=" + cinema, function(data) {
+                var result = JSON.parse(data);
+                $("#cinemaHall").empty();
+                $("#cinemaHall").append("<option> Select Show Type</option>");
+                for (var i=0; i< result.length; i++){
+                    var option = "<option value = " + result[i].cinemaHallId + ">" + result[i].name +  "</option>";
+                    $("#cinemaHall").append(option);
+                }
+            });
+        };
+        function setShowDate() {
+            var cinemaHall = $("#cinemaHall").val();
+            var movie = $("#movieName").val();
+            $.get( "/home/show?movieValue="+ movie +"&cinemaHallValue=" + cinemaHall, function( data ) {
+                var result = JSON.parse(data);
+                $("#showDate").empty();
+                $("#showDate").append("<option> Select Show Date</option>");
+                for (var i=0; i< result.length; i++){
+                    var option = "<option value = " + result[i].showId + ">" + result[i].startTime +  "</option>";
+                    $("#showDate").append(option);
+                }
+            });
+        };
+        function setNoOfTotalSeats(){
+            var cinemaHall = $("#cinemaHall").val();
+            $.get( "/home/seatsTotal?cinemaHallId="+ cinemaHall, function( data ) {
+                $("#noOfTotalSeats").text(JSON.parse(data));
+            });
+        };
+        function availableSeats(){
+            var showId = $("#showDate").val();
+            $.get( "/home/seatsAvailable?showId="+ showId, function( data ) {
+                var result = JSON.parse(data);
+                for (var i=0; i< result.length; i++){
+                    var option = "<option> " + result[i].showSeatId + "</option>";
+                    $("#bookSeatsIdSelect").append(option);
+                }
+            });
+        };
+        function createPayment(e){
+            e.preventDefault();
+            var inputs = $("#paymentForm :input").serializeArray();
+            var startDate = Date.parse($("#bookingDate").val());
+            console.log(inputs);
+            var currTime = Date.now();
+            console.log(startDate);
+            console.log(currTime);
+            var millSec = new Date(currTime).getTime() - new Date(startDate).getTime();
+            if (millSec > 120000){
+                console.log(millSec);
+                alert("Your session has expired! You will be redirected to the home page.");
+                var postURL = "/home/cancelBooking";
+                $.ajax({
+                        type: "POST",
+                        url: postURL,
+                        data: inputs,
+                        success: function(msg){
+                            var result = JSON.parse(msg);
+                            $('#msg').show();
+                            $('#msg').html("Please make payment in 2 minutes. Seats will be released after 2 minutes.");
+                        }
+                });
+                resetBookingForm();
+                enableBookingForm();
+                resetPaymentForm();
+                enablePaymentForm();
+            }
+            else{
+                var postURL = "/home/makePayment";
+                $.ajax({
+                    type: "POST",
+                    url: postURL,
+                    data: inputs,
+                    beforeSend: function() {
+                    alert("Confirming your payment");
+                    disablePaymentForm();
+                    },
+
+                    success: function(msg){
+                        var result = JSON.parse(msg);
+                        console.log(result);
+                        $('#msg').show();
+                        $('#msg').html("Your booking is confirmed.");
+                        $("#confirmMsg").val(result[0]);
+                    }
+                });
+            }
+        };
+        function disableBookingForm(){
+            $("#cityName").prop("disabled", true);
+            $("#movieName").prop("disabled", true);
+            $("#cinemaName").prop("disabled", true);
+            $("#cinemaHall").prop("disabled", true);
+            $("#showDate").prop("disabled", true);
+            $("#bookSeatsIdSelect").prop("disabled", true);
+            $("#bookSeatsId").prop("disabled", true);
+        };
+        function enableBookingForm(){
+            $("#cityName").prop("disabled", false);
+            $("#movieName").prop("disabled", false);
+            $("#cinemaName").prop("disabled", false);
+            $("#cinemaName").empty();
+            $("#cinemaName").append("Select Cinema");
+            $("#cinemaHall").prop("disabled", false);
+            $("#showDate").prop("disabled", false);
+            $("#bookSeatsIdSelect").prop("disabled", false);
+            $("#bookSeatsId").prop("disabled", false);
+            $("#submitButton").prop("disabled",false);
+        };
+        function resetBookingForm(){
+            $("#cinemaHall").empty();
+            $("#showDate").append("<option> Select Cinema</option>");
+            $("#cinemaHall").empty();
+            $("#cinemaHall").append("<option> Select Show Type</option>");
+            $("#showDate").empty();
+            $("#showDate").append("<option> Select Show Type</option>");
+            $("#noOfTotalSeats").empty();
+            $("#noOfTotalSeats").append("<option> Select Show Type</option>");
+            $("#bookSeatsIdSelect").empty();
+            $("#bookSeatsIdSelect").append("<option> Select Show Type</option>");
+            var seats="";
+            $("#bookSeatsId").val(seats);
+        };
+        function disablePaymentForm(){
+            $("#bookingId").prop("disabled", true);
+            $("#totalAmount").prop("disabled", true);
+            $("#cardNumber").prop("disabled", true);
+        };
+        function resetPaymentForm(){
+            var bookingId=""
+            $("#cardNumber").val(bookingId);
+            $("#bookingId").val("");
+            $("#totalAmount").val("");
+            $("#submitButton").prop("disabled",false);
+            $("#bookingDate").val("");
+
+        };
+        function enablePaymentForm(){
+            $("#bookingId").prop("disabled", false);
+            $("#totalAmount").prop("disabled", false);
+            $("#cardNumber").prop("disabled", false);
+        };
+</script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</body>
+</html>

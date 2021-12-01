@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.projects.movieBooking.repositories.CinemaSeatRepository">
+    <resultMap id="BaseResultMap" type="com.projects.movieBooking.entities.CinemaSeat">
+        <!--@JPA.Support generated on 2021-11-27 22:00:40.-->
+        <!--@Table cinema_seat-->
+        <id column="cinema_seat_id" jdbcType="INTEGER" property="cinemaSeatId"/>
+        <result column="seat_number" jdbcType="INTEGER" property="seatNumber"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="cinema_hall_id" jdbcType="INTEGER" property="cinemaHallId"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@JPA.Support generated on 2021-11-27 22:00:40.-->
+        cinema_seat_id, seat_number, `type`, cinema_hall_id
+    </sql>
+</mapper>

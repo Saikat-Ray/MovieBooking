@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.projects.movieBooking.repositories.BookingRepository">
+    <resultMap id="BaseResultMap" type="com.projects.movieBooking.entities.Booking">
+        <!--@JPA.Support generated on 2021-11-27 22:00:39.-->
+        <!--@Table booking-->
+        <id column="booking_id" jdbcType="INTEGER" property="bookingId"/>
+        <result column="no_of_seats" jdbcType="INTEGER" property="noOfSeats"/>
+        <result column="time_stamp" jdbcType="TIMESTAMP" property="timeStamp"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="show_id" jdbcType="INTEGER" property="showId"/>
+        <result column="timestamp" jdbcType="DATE" property="timestamp"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@JPA.Support generated on 2021-11-27 22:00:39.-->
+        booking_id, no_of_seats, time_stamp, `status`, user_id, show_id, `timestamp`
+    </sql>
+</mapper>

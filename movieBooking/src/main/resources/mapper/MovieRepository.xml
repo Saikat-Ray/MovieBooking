@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.projects.movieBooking.repositories.MovieRepository">
+    <resultMap id="BaseResultMap" type="com.projects.movieBooking.entities.Movie">
+        <!--@JPA.Support generated on 2021-11-27 22:00:41.-->
+        <!--@Table movie-->
+        <id column="movie_id" jdbcType="INTEGER" property="movieId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="release_date" jdbcType="TIMESTAMP" property="releaseDate"/>
+        <result column="duration" jdbcType="INTEGER" property="duration"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@JPA.Support generated on 2021-11-27 22:00:41.-->
+        movie_id, title, release_date, duration
+    </sql>
+</mapper>

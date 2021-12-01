@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.projects.movieBooking.repositories.CityRepository">
+    <resultMap id="BaseResultMap" type="com.projects.movieBooking.entities.City">
+        <!--@JPA.Support generated on 2021-11-27 22:00:40.-->
+        <!--@Table city-->
+        <id column="city_id" jdbcType="INTEGER" property="cityId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@JPA.Support generated on 2021-11-27 22:00:40.-->
+        city_id, `name`
+    </sql>
+</mapper>
